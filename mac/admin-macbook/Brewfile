@@ -1,0 +1,20 @@
+# Brewfile — Skylinks Admin MacBook baseline
+# Purpose: Standard app package for location-level Skylinks admin/manager MacBooks.
+#
+# Keep this boring and stable.
+# Microsoft Office, quality-of-life apps, and developer tooling are
+# intentionally excluded. See README.md for the reasoning.
+
+cask_args appdir: "/Applications"
+
+# Core browser / workspace
+cask "google-chrome"
+cask "google-drive"
+
+# Skylinks core apps
+cask "notion"
+cask "slack"
+cask "zoom"
+
+# AI assistant
+cask "claude"

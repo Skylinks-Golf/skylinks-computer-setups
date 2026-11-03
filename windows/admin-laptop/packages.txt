@@ -1,0 +1,25 @@
+# packages.txt — Skylinks Admin Windows laptop baseline
+# Purpose: standard app package for location-level Skylinks admin/manager
+# Windows laptops. The winget analogue of the Mac Brewfile.
+#
+# One winget package ID per line. Blank lines and # comments are ignored.
+# Keep this boring and stable. Matches the Mac baseline, plus PowerShell 7
+# (Windows has no modern shell out of the box).
+#
+# Microsoft Office, quality-of-life apps, and developer tooling are
+# intentionally excluded. See README.md.
+
+# Core browser / workspace
+Google.Chrome
+Google.GoogleDrive
+
+# Skylinks core apps
+Notion.Notion
+SlackTechnologies.Slack
+Zoom.Zoom
+
+# AI assistant
+Anthropic.Claude
+
+# Windows extra: modern shell (macOS ships zsh/bash; Windows does not)
+Microsoft.PowerShell

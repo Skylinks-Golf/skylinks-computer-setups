@@ -1,0 +1,18 @@
+# packages.txt - Skylinks Register (POS) baseline
+# Purpose: standard app package for location-level Skylinks registers.
+# The winget analogue of the Mac Brewfile.
+#
+# One winget package ID per line. Blank lines and # comments are ignored.
+# Keep this boring and stable.
+#
+# Peripheral drivers (Star receipt printer) are NOT on winget and are handled
+# as a checklist item with the vendor URL. See post-install-checklist.md.
+
+# Web POS runs in Chrome (Lightspeed)
+Google.Chrome
+
+# Staff comms
+SlackTechnologies.Slack
+
+# Management shell
+Microsoft.PowerShell

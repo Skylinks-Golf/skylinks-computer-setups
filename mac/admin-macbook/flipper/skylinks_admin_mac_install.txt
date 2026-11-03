@@ -1,0 +1,32 @@
+ID 05AC:024F Apple:Keyboard
+REM Skylinks Admin MacBook Install
+REM
+REM Opens Terminal and runs the Skylinks bootstrap, which downloads
+REM setup.sh + Brewfile and starts the install.
+REM
+REM The operator must be physically present: macOS will prompt for the
+REM admin password and for app permissions during the run.
+REM
+REM BEFORE FIRST USE ON A MACHINE:
+REM  - macOS may show an "Allow accessory to connect?" prompt when the
+REM    Flipper is plugged in. Approve it, unplug, and re-run the payload.
+REM  - Watch that Spotlight's top hit is actually Terminal before it
+REM    submits. If not, stop and open Terminal manually, then paste the
+REM    bootstrap line below.
+REM
+REM Pinned to tag "device-setup-v2". Branch testing: set SKYLINKS_SETUP_REF and the URL
+REM and prefix the command with SKYLINKS_SETUP_REF=<branch>
+
+DELAY 3000
+
+REM Open Spotlight
+GUI SPACE
+DELAY 1000
+STRING Terminal
+DELAY 1200
+ENTER
+DELAY 3000
+
+REM Run the bootstrap. Single line so there is only one point of failure.
+STRING SKYLINKS_SETUP_REF=device-setup-v2 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Skylinks-Golf/skylinks-computer-setups/device-setup-v2/mac/admin-macbook/bootstrap.sh)"
+ENTER

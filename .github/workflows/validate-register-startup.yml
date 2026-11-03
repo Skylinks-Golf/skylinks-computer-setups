@@ -1,0 +1,38 @@
+name: Validate register startup
+
+# Registers fetch windows/register-startup/ straight from master, so a broken file here reaches
+# every register at its next logon. This blocks that: run it as a required check on pull requests.
+on:
+  pull_request:
+    paths:
+      - 'windows/**'
+      - '.github/workflows/validate-register-startup.yml'
+  push:
+    branches: [master, canary]
+    paths:
+      - 'windows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate scripts and register config
+        shell: pwsh
+        run: |
+          $failed = $false
+          foreach ($f in Get-ChildItem windows -Recurse -Filter *.ps1) {
+            $errs = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$errs)
+            if ($errs) { $errs | ForEach-Object { Write-Error "$($f.FullName): $($_.Message)" }; $failed = $true }
+          }
+          $cfg = Get-Content -Raw windows/register-startup/register-config.json | ConvertFrom-Json
+          foreach ($w in $cfg.windows) {
+            if (-not $w.url -or $w.url -match 'CHANGE-ME') { Write-Error "Window '$($w.name)' has no URL"; $failed = $true }
+            if ($w.position -notin 'left', 'right', 'fullscreen') { Write-Error "Window '$($w.name)' has bad position '$($w.position)'"; $failed = $true }
+            if ($w.monitor -notin 'primary', 'secondary') { Write-Error "Window '$($w.name)' has bad monitor '$($w.monitor)'"; $failed = $true }
+          }
+          if ($failed) { exit 1 }

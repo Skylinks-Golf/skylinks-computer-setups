@@ -1,0 +1,28 @@
+REM Skylinks Admin Windows Install
+REM
+REM Opens an elevated PowerShell and runs the Skylinks bootstrap, which
+REM downloads setup.ps1 + packages.txt and starts the install.
+REM
+REM The operator MUST be physically present:
+REM  - A UAC prompt appears after the Run command. Click "Yes".
+REM  - Windows will prompt for app permissions during the run.
+REM
+REM How it works: the Run command launches a normal PowerShell that
+REM immediately re-launches itself elevated (Start-Process -Verb RunAs).
+REM The elevated window then runs the bootstrap on its own, so there is no
+REM keystroke timing tied to the UAC dialog -- the only manual step is
+REM clicking "Yes".
+REM
+REM Pinned to tag "device-setup-v2". Branch testing: change the ref in both the
+
+DELAY 3000
+
+REM Open the Run dialog
+GUI r
+DELAY 1000
+
+STRING powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoExit','-Command','$env:SKYLINKS_SETUP_REF=''device-setup-v2''; iex (irm https://raw.githubusercontent.com/Skylinks-Golf/skylinks-computer-setups/device-setup-v2/windows/admin-laptop/bootstrap.ps1)'"
+DELAY 500
+ENTER
+
+REM A UAC prompt now appears. The operator clicks "Yes" to continue.

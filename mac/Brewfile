@@ -1,0 +1,17 @@
+# Brewfile — Skylinks work laptop baseline
+cask_args appdir: "/Applications"
+
+# Core GUI apps
+cask "google-chrome"
+cask "claude"          # Anthropic Claude Desktop (official cask)
+cask "notion"          # Notion app
+cask "slack"
+cask "zoom"
+cask "google-drive"    # remove if not using Drive sync
+
+# Optional CLI tooling (only if they'll use a terminal)
+brew "mas"             # Mac App Store CLI, for App Store-only apps
+
+# Mac App Store apps (find IDs with: mas search "App Name")
+# mas "Numbers", id: 409203825
+# mas "Keynote", id: 409183694

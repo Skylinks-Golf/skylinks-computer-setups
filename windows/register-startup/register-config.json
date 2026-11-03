@@ -1,0 +1,13 @@
+{
+  "chromePath": null,
+  "chromeArgs": [],
+  "waitForNetworkSeconds": 90,
+  "windowTimeoutSeconds": 30,
+  "startApps": [],
+  "windows": [
+    { "name": "retail",       "url": "https://us.merchantos.com/home",   "position": "left",       "monitor": "primary" },
+    { "name": "golf",         "url": "https://www.chronogolf.com/admin#/clubs/2534/teesheets",       "position": "right",      "monitor": "primary" },
+    { "name": "tee-sheet-tv", "url": "https://www.chronogolf.com/admin#/clubs/2534/tv/teesheets", "position": "fullscreen", "monitor": "secondary" }
+  ],
+  "hosts": {}
+}
