@@ -4,6 +4,11 @@
   "waitForNetworkSeconds": 90,
   "windowTimeoutSeconds": 30,
   "startApps": [],
+  "extension": {
+    "repo": "Skylinks-Golf/skylinks-extension",
+    "ref": "release",
+    "path": "%ProgramData%\\Skylinks\\extension"
+  },
   "windows": [
     { "name": "retail",       "url": "https://us.merchantos.com/home",   "position": "left",       "monitor": "primary" },
     { "name": "golf",         "url": "https://www.chronogolf.com/admin#/clubs/2534/teesheets",       "position": "right",      "monitor": "primary" },

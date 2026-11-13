@@ -23,6 +23,29 @@ the config is missing a URL, so make it a required check on `master`.
 
 Only `register-launcher.ps1` itself is not self-updating. Re-run the installer to change it.
 
+## Skylinks Tools extension updates
+
+Each logon, before Chrome opens, `register-startup.ps1` downloads the `release` branch of
+`Skylinks-Golf/skylinks-extension` and mirrors its `extension/` folder into
+`C:\ProgramData\Skylinks\extension`. It checks the download first (valid MV3 manifest, `popup.html` and
+`popup.js` present) and only swaps the folder if the contents changed. If GitHub is unreachable or the
+check fails, the folder stays as it was and startup carries on. Chrome re-reads an unpacked
+extension from disk when it starts, so the register runs the current release after its next logon.
+
+**To ship an extension change:** merge it to `main` in the extension repo, then open a PR from `main`
+into `release` and merge it. Registers pick it up at their next logon.
+
+- Settings live in the `extension` block of `register-config.json` (`repo`, `ref`, `path`).
+- Test on one PC first: put a branch name in `C:\ProgramData\Skylinks\register\extension-ref.txt`. Delete the file to go back to the config's ref.
+- Run it now: `schtasks /run /tn "Skylinks Register Startup"`, then restart Chrome. This also reopens the register windows, so do it when the register is idle.
+- Log lines start with `Extension` in `C:\ProgramData\Skylinks\logs\register-startup.log`.
+
+**One-time step per register** (the sync fills the folder, but Chrome has to be pointed at it once):
+
+1. Run the startup task once (or restart the register) so `C:\ProgramData\Skylinks\extension` exists.
+2. In Chrome open `chrome://extensions`, turn on **Developer mode**, and remove any old **Skylinks Tools** loaded from a cloned repo.
+3. Click **Load unpacked** and choose `C:\ProgramData\Skylinks\extension`. Pin it to the toolbar.
+
 ## Install on a register
 
 Elevated PowerShell on the register:

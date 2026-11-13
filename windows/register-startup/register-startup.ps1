@@ -101,6 +101,72 @@ while ($true) {
     Start-Sleep -Seconds 2
 }
 
+# Keep the Skylinks Tools extension folder in step with the release branch of its repo.
+# Chrome re-reads an unpacked extension from disk when it starts, so syncing here, before
+# Chrome opens, means every logon runs the current release. A failed sync never blocks startup:
+# the folder is left as it was. To test on one PC, put a branch name in
+# C:\ProgramData\Skylinks\register\extension-ref.txt (delete the file to go back to the config's ref).
+function Get-TreeHash([string]$Dir) {
+    $base = (Resolve-Path $Dir).Path
+    $lines = Get-ChildItem $Dir -Recurse -File | Sort-Object FullName | ForEach-Object {
+        $_.FullName.Substring($base.Length).ToLower() + ':' + (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+    }
+    $sha = [Security.Cryptography.SHA256]::Create()
+    [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes(($lines -join "`n"))))
+}
+
+$ext = $config.extension
+if ($ext -and $ext.repo) {
+    $extTmp = Join-Path $env:TEMP ('sky-ext-' + [guid]::NewGuid())
+    try {
+        $extRef = if ($ext.ref) { [string]$ext.ref } else { 'release' }
+        $refFile = Join-Path $env:ProgramData 'Skylinks\register\extension-ref.txt'
+        if (Test-Path $refFile) { $extRef = (Get-Content -Raw $refFile).Trim() }
+        if ($ext.repo -notmatch '^[\w.-]+/[\w.-]+$' -or $extRef -notmatch '^[\w./-]+$') { throw "bad extension repo or ref ($($ext.repo) $extRef)" }
+        $extPath = [Environment]::ExpandEnvironmentVariables([string]$ext.path)
+        if (-not $extPath) { throw 'extension.path is empty' }
+
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        New-Item -ItemType Directory -Path $extTmp | Out-Null
+        Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/$($ext.repo)/archive/refs/heads/$extRef.zip" -OutFile "$extTmp\ext.zip" -TimeoutSec 60
+        Expand-Archive -Path "$extTmp\ext.zip" -DestinationPath "$extTmp\unzipped"
+        $src = Join-Path (Get-ChildItem "$extTmp\unzipped" -Directory | Select-Object -First 1).FullName 'extension'
+
+        # Validate the download before it replaces anything.
+        $manifest = Get-Content -Raw "$src\manifest.json" | ConvertFrom-Json
+        if ($manifest.manifest_version -ne 3 -or -not $manifest.version) { throw 'downloaded manifest.json is not a valid MV3 manifest' }
+        foreach ($required in 'popup.html', 'popup.js') {
+            if (-not (Test-Path "$src\$required")) { throw "downloaded extension is missing $required" }
+        }
+
+        if ((Test-Path "$extPath\manifest.json") -and (Get-TreeHash $src) -eq (Get-TreeHash $extPath)) {
+            Write-Log "Extension already current ($($manifest.version) from $extRef)"
+        } else {
+            $old = if (Test-Path "$extPath\manifest.json") { (Get-Content -Raw "$extPath\manifest.json" | ConvertFrom-Json).version } else { 'none' }
+            $parent = Split-Path $extPath -Parent
+            New-Item -ItemType Directory -Force -Path $parent | Out-Null
+            $staged = "$extPath.new"; $backup = "$extPath.old"
+            Remove-Item $staged, $backup -Recurse -Force -ErrorAction SilentlyContinue
+            Copy-Item $src $staged -Recurse
+            try {
+                if (Test-Path $extPath) { Move-Item $extPath $backup }
+                Move-Item $staged $extPath
+                Remove-Item $backup -Recurse -Force -ErrorAction SilentlyContinue
+            } catch {
+                # Put the previous copy back if the swap half-failed (for example, files held open).
+                if (-not (Test-Path $extPath) -and (Test-Path $backup)) { Move-Item $backup $extPath }
+                Remove-Item $staged -Recurse -Force -ErrorAction SilentlyContinue
+                throw
+            }
+            Write-Log "Extension updated $old -> $($manifest.version) from $extRef. Chrome picks it up when it starts."
+        }
+    } catch {
+        Write-Log "Extension sync skipped: $_"
+    } finally {
+        Remove-Item $extTmp -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 foreach ($app in @($config.startApps)) {
     if (-not $app) { continue }
     try { Start-Process -FilePath $app; Write-Log "Started $app" } catch { Write-Log "Could not start ${app}: $_" }
